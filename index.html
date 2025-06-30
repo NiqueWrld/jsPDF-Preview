@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>jsPDF Live Preview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 font-sans p-6 min-h-screen">
+
+    <div class="max-w-4xl mx-auto">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">jsPDF Live Preview</h2>
+
+        <p class="text-gray-600 mb-4">Write your jsPDF code below (you already have <code
+                class="bg-gray-200 px-2 py-1 rounded text-sm font-mono">doc</code> initialized):</p>
+
+        <textarea id="code"
+            class="w-full h-48 p-4 border border-gray-300 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+            placeholder="Enter your jsPDF code here..." oninput="debounceGeneratePDF()">
+
+    </textarea>
+
+        <button onclick="generatePDF()"
+            class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            Manual Generate
+        </button>
+
+        <div class="mt-2 text-sm text-gray-500">
+            💡 PDF updates automatically as you type
+        </div>
+
+        <iframe id="pdfViewer" class="w-full h-96 border border-gray-300 rounded-lg mt-6 shadow-sm"></iframe>
+    </div>
+
+    <!-- jsPDF CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        let debounceTimer;
+
+        function debounceGeneratePDF() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(generatePDF, 500); // Wait 500ms after user stops typing
+        }
+
+        async function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            // Create PDF with custom size (width, height in mm)
+            const doc = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: [297, 210] // A4 landscape - change these numbers for custom size
+            });
+            const iframe = document.getElementById('pdfViewer');
+
+            const code = document.getElementById('code').value.trim();
+
+            // Don't generate if textarea is empty
+            if (!code) {
+                iframe.src = '';
+                return;
+            }
+
+            try {
+                // Execute user code with "doc" available
+                const func = new Function('doc', code);
+                func(doc);
+
+                const blob = doc.output('blob');
+                const url = URL.createObjectURL(blob);
+
+                // Clean up previous URL to prevent memory leaks
+                if (iframe.src && iframe.src.startsWith('blob:')) {
+                    URL.revokeObjectURL(iframe.src);
+                }
+
+                iframe.src = url;
+            } catch (err) {
+                console.error("Error in jsPDF code:", err.message);
+                // You can uncomment the line below if you want to see error alerts
+                // alert("Error in your jsPDF code:\n" + err.message);
+            }
+        }
+
+        // Generate PDF on page load if there's initial content
+        window.addEventListener('load', function () {
+            const code = document.getElementById('code').value.trim();
+            if (code) {
+                generatePDF();
+            }
+        });
+    </script>
+
+</body>
+
+</html>
