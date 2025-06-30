@@ -4,7 +4,55 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>jsPDF Live Preview</title>
+
+    <!-- SEO Meta Tags -->
+    <title>jsPDF Live Preview - Real-time PDF Generator and Editor Online</title>
+    <meta name="description"
+        content="Create and preview PDFs instantly with our online jsPDF editor. Real-time PDF generation, live preview, and interactive code editor for developers and designers.">
+    <meta name="keywords"
+        content="jsPDF, PDF generator, online PDF editor, live preview, PDF creator, JavaScript PDF, real-time PDF, certificate generator, invoice creator">
+    <meta name="author" content="jsPDF Live Preview">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="en">
+
+    <!-- Open Graph Meta Tags for Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="jsPDF Live Preview - Real-time PDF Generator">
+    <meta property="og:description"
+        content="Create and preview PDFs instantly with our online jsPDF editor. Perfect for developers, designers, and anyone who needs quick PDF generation.">
+    <meta property="og:url" content="https://yourwebsite.com">
+    <meta property="og:site_name" content="jsPDF Live Preview">
+    <meta property="og:image" content="https://yourwebsite.com/preview-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="jsPDF Live Preview - Real-time PDF Generator">
+    <meta name="twitter:description"
+        content="Create and preview PDFs instantly with our online jsPDF editor. Real-time generation with live preview.">
+    <meta name="twitter:image" content="https://yourwebsite.com/preview-image.png">
+    <meta name="twitter:site" content="@yourhandle">
+    <meta name="twitter:creator" content="@yourhandle">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://yourwebsite.com">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#2563eb">
+    <meta name="msapplication-TileColor" content="#2563eb">
+
+    <!-- Preconnect for Performance -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
@@ -18,9 +66,8 @@
 
         <textarea id="code"
             class="w-full h-48 p-4 border border-gray-300 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-            placeholder="Enter your jsPDF code here..." oninput="debounceGeneratePDF()">
-
-    </textarea>
+            placeholder="Enter your jsPDF code here..." oninput="debounceGeneratePDF()">// Type your jsPDF code here
+        </textarea>
 
         <button onclick="generatePDF()"
             class="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
@@ -31,6 +78,34 @@
             💡 PDF updates automatically as you type
         </div>
 
+        <!-- Error Display Area -->
+        <div id="errorDisplay" class="hidden mt-4 p-4 bg-red-50 border-l-4 border-red-400 rounded-lg">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3 flex-1">
+                    <h3 class="text-sm font-medium text-red-800">
+                        Error in jsPDF Code
+                    </h3>
+                    <div class="mt-2 text-sm text-red-700">
+                        <pre id="errorMessage"
+                            class="whitespace-pre-wrap font-mono text-xs bg-red-100 p-2 rounded"></pre>
+                    </div>
+                    <div class="mt-3">
+                        <button onclick="hideError()"
+                            class="text-sm bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1 rounded transition-colors">
+                            Dismiss
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <iframe id="pdfViewer" class="w-full h-96 border border-gray-300 rounded-lg mt-6 shadow-sm"></iframe>
     </div>
 
@@ -38,6 +113,24 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         let debounceTimer;
+
+        function showError(message) {
+            const errorDisplay = document.getElementById('errorDisplay');
+            const errorMessage = document.getElementById('errorMessage');
+
+            errorMessage.textContent = message;
+            errorDisplay.classList.remove('hidden');
+
+            // Auto-hide after 10 seconds
+            setTimeout(() => {
+                hideError();
+            }, 10000);
+        }
+
+        function hideError() {
+            const errorDisplay = document.getElementById('errorDisplay');
+            errorDisplay.classList.add('hidden');
+        }
 
         function debounceGeneratePDF() {
             clearTimeout(debounceTimer);
@@ -63,6 +156,9 @@
             }
 
             try {
+                // Hide any previous errors
+                hideError();
+
                 // Execute user code with "doc" available
                 const func = new Function('doc', code);
                 func(doc);
@@ -78,8 +174,7 @@
                 iframe.src = url;
             } catch (err) {
                 console.error("Error in jsPDF code:", err.message);
-                // You can uncomment the line below if you want to see error alerts
-                // alert("Error in your jsPDF code:\n" + err.message);
+                showError(err.message);
             }
         }
 
